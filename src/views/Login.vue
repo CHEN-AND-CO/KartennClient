@@ -4,7 +4,7 @@
       <v-row align="center" justify="center">
         <v-col cols="12" sm="8" md="4">
           <v-card class="elevation-12">
-            <v-toolbar color="primary" dark flat>
+            <v-toolbar color="primary" dark text>
               <v-toolbar-title>Login form</v-toolbar-title>
               <v-spacer />
             </v-toolbar>
@@ -38,19 +38,19 @@
 
                 <v-btn
                   v-if="options.isLoggingIn"
-                  @click.prevent=""
+                  @click.prevent="authenticate"
                   block="block"
                   type="submit"
-                  flat
+                  text
                   color="primary"
                   >SIGN IN</v-btn
                 >
                 <v-btn
                   v-else
-                  @click.prevent=""
+                  @click.prevent="register"
                   block="block"
                   type="submit"
-                  flat
+                  text
                   color="primary"
                   >SIGN UP</v-btn
                 >
@@ -81,22 +81,23 @@
 import UserService from "../services/UserService";
 
 export default {
-  data: {
-    user: {
-      // email: 'admin@example.com',
-      // password: 'admin',
-      // name: 'John Doe',
-    },
-    options: {
-      isLoggingIn: true,
-      shouldStayLoggedIn: true,
-    },
+  data() {
+    return {
+      user: {
+        email: "",
+        password: "",
+      },
+      options: {
+        isLoggingIn: true,
+        shouldStayLoggedIn: true,
+      },
+    };
   },
   methods: {
     register() {
       var data = {
-        email: user.email,
-        password: user.password,
+        email: this.user.email,
+        password: this.user.password,
       };
 
       UserService.register(data)
@@ -107,8 +108,8 @@ export default {
     },
     authenticate() {
       var data = {
-        email: user.email,
-        password: user.password,
+        email: this.user.email,
+        password: this.user.password,
       };
 
       UserService.authenticate(data)
@@ -118,6 +119,5 @@ export default {
         .catch((err) => console.error(err));
     },
   },
-  mounted() {},
 };
 </script>
