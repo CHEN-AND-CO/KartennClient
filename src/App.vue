@@ -1,6 +1,8 @@
 <template>
   <v-app id="app">
+
     <v-app-bar id="app-header" app color="primary" dark>
+
       <router-link to="/" class="d-flex align-center">
         <v-icon
           class="shrink mr-2"
@@ -15,19 +17,24 @@
       </router-link>
 
       <v-spacer></v-spacer>
-      <v-btn text>
+
+      <v-btn text fab>
         <v-icon>mdi-invert-colors</v-icon>
       </v-btn>
-      <router-link to="/login">
+
+      <v-btn id="login-btn" to="/login" text>
         <span class="mr-2">Connexion</span>
         <v-icon>mdi-login</v-icon>
-      </router-link>
+      </v-btn>
+
     </v-app-bar>
+
     <v-content>
       <v-container fluid>
         <router-view></router-view>
       </v-container>
     </v-content>
+
   </v-app>
 </template>
 
@@ -51,6 +58,10 @@ export default {
       font-style: normal;
       font-family: "Lobster", cursive, sans-serif;
     }
+  }
+
+  #login-btn {
+    // text-transform: none;
   }
 }
 </style>
