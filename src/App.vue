@@ -49,7 +49,7 @@ export default {
     #headerLogo {
       font-size: 2em;
       font-style: normal;
-      font-family: "Lobster" cursive sans-serif;
+      font-family: "Lobster", cursive, sans-serif;
     }
   }
 }
