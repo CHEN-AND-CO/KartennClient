@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
+    <div class="map" id="olmap"></div>
   </div>
 </template>
 
@@ -11,3 +11,10 @@ export default {
   }
 }
 </script>
+
+<style lang="less">
+.map#olmap {
+  width: 100%;
+  heigth: 100%;
+}
+</style>
