@@ -100,6 +100,7 @@ export default {
         password: this.user.password,
       };
 
+      console.log(data);
       UserService.register(data)
         .then((response) => {
           console.log(response);
