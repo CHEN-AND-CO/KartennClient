@@ -44,6 +44,7 @@ export default {
 <style lang="less">
 #headerLogo {
   font-size: 2em;
-  font-style: bold;
+  font-style: normal;
+  font-family: "Lobster" cursive serif;
 }
 </style>
