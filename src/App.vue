@@ -9,7 +9,6 @@
           width="40"
           >mdi-map</v-icon
         >
-
         <span id="headerLogo">
           Kartenn
         </span>
@@ -24,7 +23,6 @@
         <v-icon>mdi-login</v-icon>
       </router-link>
     </v-app-bar>
-
     <v-content>
       <v-container fluid>
         <router-view></router-view>
