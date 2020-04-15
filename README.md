@@ -1,2 +1,3 @@
 # OhMyBZH-Client
-TODO
+## Générer le site
+``` npm run build ```
