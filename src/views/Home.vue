@@ -1,20 +1,23 @@
 <template>
   <div class="home">
-    <div class="map" id="olmap"></div>
+    <Map></Map>
   </div>
 </template>
 
 <script>
+import Map from '../components/Map';
+
 export default {
   name: 'Home',
   components: {
+    Map
   }
 }
 </script>
 
 <style lang="less">
-.map#olmap {
+.home {
   width: 100%;
-  heigth: 100%;
+  height: 100%;
 }
 </style>

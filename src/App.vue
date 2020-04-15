@@ -18,7 +18,7 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn text fab>
+      <v-btn text fab @click="toggleTheme">
         <v-icon>mdi-invert-colors</v-icon>
       </v-btn>
 
@@ -30,9 +30,9 @@
     </v-app-bar>
 
     <v-content>
-      <v-container fluid>
         <router-view></router-view>
-      </v-container>
+      <!-- <v-container fluid>
+      </v-container> -->
     </v-content>
 
   </v-app>
@@ -44,7 +44,13 @@ export default {
 
   components: {},
 
-  data: () => ({})
+  data: () => ({}),
+
+  methods: {
+    toggleTheme() {
+      this.$vuetify.theme.dark = ! this.$vuetify.theme.dark;
+    }
+  }
 };
 </script>
 
@@ -52,11 +58,16 @@ export default {
 #app {
   font-family: Roboto, Helvetica, Arial, sans-serif;
 
+  color: var(--v-secondaryText-base);
+  background-color: var(--v-secondary-darken2);
+
   #app-header {
     #headerLogo {
       font-size: 2em;
       font-style: normal;
       font-family: "Lobster", cursive, sans-serif;
+
+      color: var(--v-primaryText-base);
     }
   }
 
