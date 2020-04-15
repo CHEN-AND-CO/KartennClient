@@ -9,7 +9,7 @@ export default {
     
     mounted() {
         console.log("map");
-        OLMap.createMap('map-container')
+        OLMap.createMap('map-container', "http://127.0.0.1:8081/mapdata")
     }
 }
 </script>
@@ -33,6 +33,12 @@ export default {
             text-shadow: none;
             color: var(--v-secondaryText-lighten2);
         }
+    }
+}
+
+.ol-control {
+    button {
+        background-color: var(--v-primary-base);
     }
 }
 </style>
