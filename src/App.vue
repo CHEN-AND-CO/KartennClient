@@ -1,6 +1,6 @@
 <template>
-  <v-app>
-    <v-app-bar app color="primary" dark>
+  <v-app id="app">
+    <v-app-bar id="app-header" app color="primary" dark>
       <router-link to="/" class="d-flex align-center">
         <v-icon
           class="shrink mr-2"
@@ -42,9 +42,15 @@ export default {
 </script>
 
 <style lang="less">
-#headerLogo {
-  font-size: 2em;
-  font-style: normal;
-  font-family: "Lobster" cursive serif;
+#app {
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+
+  #app-header {
+    #headerLogo {
+      font-size: 2em;
+      font-style: normal;
+      font-family: "Lobster" cursive sans-serif;
+    }
+  }
 }
 </style>
