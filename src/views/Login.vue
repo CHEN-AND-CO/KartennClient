@@ -124,7 +124,7 @@ export default {
       UserService.authenticate(data)
         .then((response) => {
           console.log(response);
-
+          console.log(response.data);
           if(!response.data.token){
             alert(response.message);
             return;
