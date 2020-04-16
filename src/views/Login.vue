@@ -11,6 +11,12 @@
             <v-card-text>
               <v-form>
                 <v-text-field
+                  v-if="!options.isLoggingIn"
+                  v-model="user.name"
+                  prepend-icon="mdi-person"
+                  label="Name"
+                ></v-text-field>
+                <v-text-field
                   v-model="user.email"
                   prepend-icon="mdi-at"
                   label="Email"
@@ -84,6 +90,7 @@ export default {
   data() {
     return {
       user: {
+        name: "",
         email: "",
         password: "",
       },
@@ -96,6 +103,7 @@ export default {
   methods: {
     register() {
       var data = {
+        name: this.user.name,
         email: this.user.email,
         password: this.user.password,
       };
