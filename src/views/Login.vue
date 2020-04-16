@@ -124,6 +124,13 @@ export default {
       UserService.authenticate(data)
         .then((response) => {
           console.log(response);
+
+          if(!response.data.token){
+            alert(response.message);
+            return;
+          }
+
+          localStorage.xtoken = response.data.token;
         })
         .catch((err) => console.error(err));
     },
