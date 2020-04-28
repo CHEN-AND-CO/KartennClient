@@ -171,9 +171,7 @@ export default {
                     })
                 }),
                 tileUrlFunction: function (tileCoord) {
-                    // console.log(tileCoord);
                     var data = tileIndex.getTile(tileCoord[0], tileCoord[1], tileCoord[2]);
-                    console.log(tileIndex.tiles)
                     var geojson = JSON.stringify({
                         type: 'FeatureCollection',
                         features: data ? data.features : []
