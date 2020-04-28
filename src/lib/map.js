@@ -1,5 +1,4 @@
 
-
 import 'ol/ol.css';
 import { Map as OLMap, View } from "ol";
 import TileLayer from "ol/layer/Tile";
@@ -7,43 +6,46 @@ import OSM from "ol/source/OSM";
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
-import { Fill, Stroke, Style, Text } from 'ol/style';
 import Graticule from "ol/layer/Graticule";
-
-// import XYZ from "ol/source/XYZ";
-
-
-
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Select from 'ol/interaction/Select';
+import { click, pointerMove, altKeyOnly } from 'ol/events/condition';
 
 var map;
-// TODO : Development static map data server !
-var _tileserver = 'http://tiles-kartenn.herrcrazi.tk/';
 
 export default {
 
-    createMap(outletID, tileserver) {
-        if (tileserver) {
-            _tileserver = tileserver
-        }
-
-        var style = new Style({
-            fill: new Fill({
-                color: '#42424299'
-            }),
-            stroke: new Stroke({
-                color: '#51994999',
-                width: 1
-            }),
-            text: new Text({
-                font: '12px Calibri,sans-serif',
-                fill: new Fill({
-                    color: '#000'
-                }),
+    createMap(outletID) {
+        var styles = {
+            'MultiPolygon': new Style({
                 stroke: new Stroke({
-                    color: '#fff',
+                    color: 'rgb(100, 100, 200)',
+                    lineDash: [4],
                     width: 3
+                }),
+                fill: new Fill({
+                    color: 'rgba(100, 100, 200, 0.1)'
+                })
+            }),
+            'Polygon': new Style({
+                stroke: new Stroke({
+                    color: 'rgb(100, 100, 200)',
+                    lineDash: [4],
+                    width: 3
+                }),
+                fill: new Fill({
+                    color: 'rgba(100, 100, 200, 0.1)'
                 })
             })
+        };
+
+        var styleFunction = function (feature) {
+            return styles[feature.getGeometry().getType()];
+        };
+
+        var geojsonObject = require('../../public/fix.bretagne.geojson.min.json');
+        var vectorSource = new VectorSource({
+          features: (new GeoJSON()).readFeatures(geojsonObject)
         });
 
         // OpenLayers Map
@@ -55,17 +57,10 @@ export default {
                     source: new OSM()
                 }),
 
-                // new VectorLayer({
-                //     source: new VectorSource({
-                //         url: _tileserver + "/vector/communes.json",
-                //         format: new GeoJSON(),
-                //         projection: "EPSG:4326"
-                //     }),
-                //     style: function (feature) {
-                //         style.getText().setText(feature.get('name'));
-                //         return style;
-                //     }
-                // })
+                new VectorLayer({
+                    source: vectorSource,
+                    style: styleFunction
+                }),
                 new Graticule({
                     showLabels: true
                 })
@@ -76,7 +71,23 @@ export default {
                 center: [-390142, 6130000],
                 zoom: 9
             })
-        })
+        });
+
+        var select = new Select({
+            condition: click
+        });
+        var hoover = new Select({
+            condition: pointerMove
+        });
+
+        map.addInteraction(select);
+        select.on('select', function (e) {
+            alert(e.selected[0].values_.name);
+        });
+        map.addInteraction(hoover);
+        hoover.on('select', function (e) {
+            
+        });
     },
 
     getOLMap() {
