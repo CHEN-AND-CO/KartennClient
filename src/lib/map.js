@@ -1,5 +1,4 @@
 
-
 import 'ol/ol.css';
 import { Map as OLMap, View } from "ol";
 import TileLayer from "ol/layer/Tile";
@@ -8,42 +7,47 @@ import OSM from "ol/source/OSM";
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
-import TopoJSON from 'ol/format/TopoJSON';
-
-import CircleStyle from 'ol/style/Circle';
-
-import MVT from 'ol/format/MVT';
-import VectorTileLayer from 'ol/layer/VectorTile';
-import VectorTileSource from 'ol/source/VectorTile';
-
-import { Fill, Stroke, Style, Text } from 'ol/style';
 import Graticule from "ol/layer/Graticule";
-import XYZ from 'ol/source/XYZ';
-
-// import XYZ from "ol/source/XYZ";
-
-
-
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Select from 'ol/interaction/Select';
+import { click, pointerMove, altKeyOnly } from 'ol/events/condition';
 
 var map;
-// TODO : Development static map data server !
-var _tileserver = 'http://tiles-kartenn.herrcrazi.tk/';
+const _tileserver = "http://127.0.0.1:8082/mapdata/vector";
 
 export default {
 
-    createMap(outletID, tileserver) {
-        if (tileserver) {
-            _tileserver = tileserver
-        }
-
-        var style = new Style({
-            fill: new Fill({
-                color: '#88888888'
+    createMap(outletID) {
+        var styles = {
+            'MultiPolygon': new Style({
+                stroke: new Stroke({
+                    color: 'rgb(100, 100, 200)',
+                    lineDash: [4],
+                    width: 3
+                }),
+                fill: new Fill({
+                    color: 'rgba(100, 100, 200, 0.1)'
+                })
             }),
-            stroke: new Stroke({
-                color: '#519949',
-                width: 1
+            'Polygon': new Style({
+                stroke: new Stroke({
+                    color: 'rgb(100, 100, 200)',
+                    lineDash: [4],
+                    width: 3
+                }),
+                fill: new Fill({
+                    color: 'rgba(100, 100, 200, 0.1)'
+                })
             })
+        };
+
+        var styleFunction = function (feature) {
+            return styles[feature.getGeometry().getType()];
+        };
+
+        var geojsonObject = require('../../public/fix.bretagne.geojson.min.json');
+        var vectorSource = new VectorSource({
+          features: (new GeoJSON()).readFeatures(geojsonObject)
         });
 
         // OpenLayers Map
@@ -59,22 +63,16 @@ export default {
                     
                 
                 //GeoJSON des communes (lourd)
-                new VectorLayer({
-                    source: new VectorSource({
-                        url: _tileserver + "/vector/fix.bretagne.geojson.min.json",
-                        format: new GeoJSON(),
-                    }),
-                }),
-
-                // Fond vectoriel d'Arcgis (pas stylé)
-                // new VectorTileLayer({
-                //     source: new VectorTileSource({
-                //         url: "http://127.0.0.1:8081/vector/com.mvt",
-                //         format: new MVT()
+                // new VectorLayer({
+                //     source: new VectorSource({
+                //         url: _tileserver + "/fix.bretagne.geojson.min.json",
+                //         format: new GeoJSON(),
                 //     }),
-                //     declutter: true,
-                //     style: style
                 // }),
+                new VectorLayer({
+                    source: vectorSource,
+                    style: styleFunction
+                }),
 
                 new Graticule({
                     showLabels: true
@@ -87,7 +85,23 @@ export default {
                 // center: [-2,47],
                 zoom: 8
             })
-        })
+        });
+
+        var select = new Select({
+            condition: click
+        });
+        var hoover = new Select({
+            condition: pointerMove
+        });
+
+        map.addInteraction(select);
+        select.on('select', function (e) {
+            alert(e.selected[0].values_.name);
+        });
+        map.addInteraction(hoover);
+        hoover.on('select', function (e) {
+            
+        });
     },
 
     getOLMap() {

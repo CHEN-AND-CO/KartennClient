@@ -125,12 +125,12 @@ export default {
         .then((response) => {
           console.log(response);
           console.log(response.data);
-          if(!response.data.token){
+          if(!response.data.data.token){
             alert(response.message);
             return;
           }
 
-          localStorage.xtoken = response.data.token;
+          localStorage.xtoken = response.data.data.token;
         })
         .catch((err) => console.error(err));
     },
