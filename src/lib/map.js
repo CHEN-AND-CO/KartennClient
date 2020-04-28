@@ -4,16 +4,64 @@ import { Map as OLMap, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
+// import VectorLayer from 'ol/layer/Vector';
+// import VectorSource from 'ol/source/Vector';
+import VectorTileLayer from 'ol/layer/VectorTile';
+import VectorTileSource from 'ol/source/VectorTile';
 import GeoJSON from 'ol/format/GeoJSON';
-import Graticule from "ol/layer/Graticule";
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import Projection from 'ol/proj/Projection';
+
+import Graticule from "ol/layer/Graticule";
+
 import Select from 'ol/interaction/Select';
 import { click, pointerMove, altKeyOnly } from 'ol/events/condition';
 
+import geojsonvt from 'geojson-vt';
+
 var map;
-const _tileserver = "http://127.0.0.1:8082/mapdata/vector";
+const _tileserver = "http://127.0.0.1:8081/mapdata/vector";
+
+
+// Converts geojson-vt data to GeoJSON
+var replacer = function (key, value) {
+    if (value.geometry) {
+        var type;
+        var rawType = value.type;
+        var geometry = value.geometry;
+
+        if (rawType === 1) {
+            type = 'MultiPoint';
+            if (geometry.length == 1) {
+                type = 'Point';
+                geometry = geometry[0];
+            }
+        } else if (rawType === 2) {
+            type = 'MultiLineString';
+            if (geometry.length == 1) {
+                type = 'LineString';
+                geometry = geometry[0];
+            }
+        } else if (rawType === 3) {
+            type = 'Polygon';
+            if (geometry.length > 1) {
+                type = 'MultiPolygon';
+                geometry = [geometry];
+            }
+        }
+
+        return {
+            'type': 'Feature',
+            'geometry': {
+                'type': type,
+                'coordinates': geometry
+            },
+            'properties': value.tags
+        };
+    } else {
+        return value;
+    }
+};
 
 export default {
 
@@ -41,14 +89,14 @@ export default {
             })
         };
 
-        var styleFunction = function (feature) {
-            return styles[feature.getGeometry().getType()];
-        };
+        // var styleFunction = function (feature) {
+        //     return styles[feature.getGeometry().getType()];
+        // };
 
-        var geojsonObject = require('../../public/fix.bretagne.geojson.min.json');
-        var vectorSource = new VectorSource({
-          features: (new GeoJSON()).readFeatures(geojsonObject)
-        });
+        // var geojsonObject = require('../../public/fix.bretagne.geojson.min.json');
+        // var vectorSource = new VectorSource({
+        //   features: (new GeoJSON()).readFeatures(geojsonObject)
+        // });
 
         // OpenLayers Map
         map = new OLMap({
@@ -68,10 +116,10 @@ export default {
                 //         format: new GeoJSON(),
                 //     }),
                 // }),
-                new VectorLayer({
-                    source: vectorSource,
-                    style: styleFunction
-                }),
+                // new VectorLayer({
+                //     source: vectorSource,
+                //     style: styleFunction
+                // }),
 
                 new Graticule({
                     showLabels: true
@@ -100,6 +148,43 @@ export default {
         map.addInteraction(hoover);
         hoover.on('select', function (e) {
             
+        });
+
+        this.addTownships();
+    },
+
+    addTownships() {
+        fetch(_tileserver + "/fix_equi.geojson").then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            var tileIndex = geojsonvt(json, {
+                extent: 4096,
+                debug: 1
+            });
+            var vectorSource = new VectorTileSource({
+                format: new GeoJSON({
+                    // Data returned from geojson-vt is in tile pixel units
+                    dataProjection: new Projection({
+                        code: 'TILE_PIXELS',
+                        units: 'tile-pixels',
+                        extent: [0, 0, 4096, 4096]
+                    })
+                }),
+                tileUrlFunction: function (tileCoord) {
+                    // console.log(tileCoord);
+                    var data = tileIndex.getTile(tileCoord[0], tileCoord[1], tileCoord[2]);
+                    console.log(tileIndex.tiles)
+                    var geojson = JSON.stringify({
+                        type: 'FeatureCollection',
+                        features: data ? data.features : []
+                    }, replacer);
+                    return 'data:application/json;charset=UTF-8,' + geojson;
+                }
+            });
+            var vectorLayer = new VectorTileLayer({
+                source: vectorSource
+            });
+            map.addLayer(vectorLayer);
         });
     },
 
