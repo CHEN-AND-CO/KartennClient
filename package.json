@@ -9,9 +9,10 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "core-js": "^3.6.4",
-    "ol": "^6.3.1",
     "colormap": "2.3.1",
+    "core-js": "^3.6.4",
+    "geojson-vt": "^3.2.1",
+    "ol": "^6.3.1",
     "ol-hashed": "2.0.0",
     "ol-mapbox-style": "4.3.1",
     "register-service-worker": "^1.7.1",

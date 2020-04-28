@@ -58,7 +58,6 @@ export default {
                 new TileLayer({
                     source: new OSM(),
                     opacity: 1,
-                    // projection: "EPSG:3857"
                 }),
                     
                 
@@ -83,7 +82,7 @@ export default {
                 projection: "EPSG:3857",
                 center: [-390142, 6130000],
                 // center: [-2,47],
-                zoom: 8
+                zoom: 9
             })
         });
 
