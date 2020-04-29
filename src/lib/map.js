@@ -83,7 +83,8 @@ var styles = {
         }),
         fill: new Fill({
             color: '#77ff4455'
-        })
+        }),
+        zIndex: 42 // Somewhere above the other, unselected, features
     })
 };
 
@@ -106,7 +107,7 @@ export default {
             layers: [
                 new TileLayer({
                     source: new OSM(),
-                    opacity: 0.1,
+                    // opacity: 0.5,
                 }),
                     
                 
