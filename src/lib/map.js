@@ -136,6 +136,7 @@ export default {
         map.on('pointermove', (e) => {
             if (e.dragging) return;
 
+            selectedId = null;
             map.forEachFeatureAtPixel(e.pixel, (f) => {
                 selectedId = f.get("name");
             })
