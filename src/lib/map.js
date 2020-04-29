@@ -11,6 +11,7 @@ import VectorTileSource from 'ol/source/VectorTile';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Projection from 'ol/proj/Projection';
+import { buffer, extend } from 'ol/extent';
 
 import Graticule from "ol/layer/Graticule";
 
@@ -142,6 +143,26 @@ export default {
             })
             
             vectorLayer.setStyle(styleFunction) // We are forced to re-apply the style function to the whole layer since OL5 doesn't update properly the features' style
+        });
+
+        // Handle feature click 
+        map.on('click', (e) => {
+            let featureExtent;
+
+            // Set the selected style
+            map.forEachFeatureAtPixel(e.pixel, (f) => {
+                selectedId = f.get("name");
+                featureExtent = f.getGeometry().getExtent();
+            })
+            vectorLayer.setStyle(styleFunction);
+
+            // Zoom to the selected feature
+            if (featureExtent) {
+                for ( const feature of vectorLayer.getSource().getFeaturesInExtent( map.getView().calculateExtent( map.getSize() ) ) ) {
+                    if (feature.get("name") === selectedId) extend( featureExtent, feature.getGeometry().getExtent() );
+                }
+                map.getView().fit( buffer(featureExtent, 1000), {duration: 500} );
+            }
         });
 
         // Add the vector layer for interactive townships features
