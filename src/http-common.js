@@ -1,8 +1,8 @@
 import axios from "axios";
+import constants from "constants";
 
 export default axios.create({
-  baseURL: "http://217.182.204.82:8420",
-  //baseURL: "http://localhost:8420",
+  baseURL: constants.api_url,
   headers: {
     "Content-type": "application/json",
     "x-access-token": localStorage.xtoken,

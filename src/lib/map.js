@@ -3,25 +3,24 @@ import 'ol/ol.css';
 import { Map as OLMap, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
-
-// import VectorLayer from 'ol/layer/Vector';
-// import VectorSource from 'ol/source/Vector';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import Projection from 'ol/proj/Projection';
-
+import { buffer, extend } from 'ol/extent';
 import Graticule from "ol/layer/Graticule";
-
-import Select from 'ol/interaction/Select';
-import { click, pointerMove, altKeyOnly } from 'ol/events/condition';
 
 import geojsonvt from 'geojson-vt';
 
-var map;
-const _tileserver = "http://127.0.0.1:8080/";
+import constants from '../constants';
 
+var map;
+const _tileserver = constants.tile_server;
+const _townships = constants.township_geojson;
+
+/* MFW I see dirty globals - burn that straight to hell */
+/* Then you realize it's Javascript so yeah guess it's fine then */
 
 // Converts geojson-vt data to GeoJSON
 var replacer = function (key, value) {
@@ -63,62 +62,60 @@ var replacer = function (key, value) {
     }
 };
 
+var selectedId;
+var vectorLayer;
+
+var styles = {
+    'default': new Style({
+        stroke: new Stroke({
+            color: '#999999',
+            width: 1
+        }),
+        fill: new Fill({
+            color: 'transparent' // Even though we don't want a visible fill, one is still required for pointer hit detection
+        })
+    }),
+    'hover': new Style({
+        stroke: new Stroke({
+            color: '#55ff33',
+            width: 5
+        }),
+        fill: new Fill({
+            color: '#77ff4455'
+        }),
+        zIndex: 42 // Somewhere above the other, unselected, features
+    })
+};
+
+var styleFunction = (feature, resolution) => {
+    if (feature.get("name") === selectedId) return styles.hover;
+    else return styles.default;
+}
+
+
+
 export default {
 
     createMap(outletID) {
-        var styles = {
-            'MultiPolygon': new Style({
-                stroke: new Stroke({
-                    color: 'rgb(100, 100, 200)',
-                    lineDash: [4],
-                    width: 3
-                }),
-                fill: new Fill({
-                    color: 'rgba(100, 100, 200, 0.1)'
-                })
-            }),
-            'Polygon': new Style({
-                stroke: new Stroke({
-                    color: 'rgb(100, 100, 200)',
-                    lineDash: [4],
-                    width: 3
-                }),
-                fill: new Fill({
-                    color: 'rgba(100, 100, 200, 0.1)'
-                })
-            })
-        };
-
-        // var styleFunction = function (feature) {
-        //     return styles[feature.getGeometry().getType()];
-        // };
-
-        // var geojsonObject = require('../../public/fix.bretagne.geojson.min.json');
-        // var vectorSource = new VectorSource({
-        //   features: (new GeoJSON()).readFeatures(geojsonObject)
-        // });
 
         // OpenLayers Map
         map = new OLMap({
             target: outletID,
+
             // Layers
             layers: [
                 new TileLayer({
                     source: new OSM(),
-                    opacity: 1,
+                    // opacity: 0.5,
                 }),
-                    
-                
+
+
                 //GeoJSON des communes (lourd)
                 // new VectorLayer({
                 //     source: new VectorSource({
                 //         url: _tileserver + "/fix.bretagne.geojson.min.json",
                 //         format: new GeoJSON(),
                 //     }),
-                // }),
-                // new VectorLayer({
-                //     source: vectorSource,
-                //     style: styleFunction
                 // }),
 
                 new Graticule({
@@ -134,27 +131,44 @@ export default {
             })
         });
 
-        var select = new Select({
-            condition: click
-        });
-        var hoover = new Select({
-            condition: pointerMove
+        // Handle feature selection with mouse
+        map.on('pointermove', (e) => {
+            if (e.dragging) return;
+
+            selectedId = null;
+            map.forEachFeatureAtPixel(e.pixel, (f) => {
+                selectedId = f.get("name");
+            })
+
+            vectorLayer.setStyle(styleFunction) // We are forced to re-apply the style function to the whole layer since OL5 doesn't update properly the features' style
         });
 
-        map.addInteraction(select);
-        select.on('select', function (e) {
-            alert(e.selected[0].values_.name);
-        });
-        map.addInteraction(hoover);
-        hoover.on('select', function (e) {
-            
+        // Handle feature click 
+        map.on('click', (e) => {
+            let featureExtent;
+
+            // Set the selected style
+            map.forEachFeatureAtPixel(e.pixel, (f) => {
+                selectedId = f.get("name");
+                featureExtent = f.getGeometry().getExtent();
+            })
+            vectorLayer.setStyle(styleFunction);
+
+            // Zoom to the selected feature
+            if (featureExtent) {
+                for (const feature of vectorLayer.getSource().getFeaturesInExtent(map.getView().calculateExtent(map.getSize()))) {
+                    if (feature.get("name") === selectedId) extend(featureExtent, feature.getGeometry().getExtent());
+                }
+                map.getView().fit(buffer(featureExtent, 1000), { duration: 500 });
+            }
         });
 
+        // Add the vector layer for interactive townships features
         this.addTownships();
     },
 
     addTownships() {
-        fetch(_tileserver + "wsg84fix.bretagne.geojson.min.json").then(function (response) {
+        fetch(_tileserver + _townships).then(function (response) {
             return response.json();
         }).then(function (json) {
             var tileIndex = geojsonvt(json, {
@@ -171,9 +185,7 @@ export default {
                     })
                 }),
                 tileUrlFunction: function (tileCoord) {
-                    // console.log(tileCoord);
                     var data = tileIndex.getTile(tileCoord[0], tileCoord[1], tileCoord[2]);
-                    console.log(tileIndex.tiles)
                     var geojson = JSON.stringify({
                         type: 'FeatureCollection',
                         features: data ? data.features : []
@@ -181,8 +193,9 @@ export default {
                     return 'data:application/json;charset=UTF-8,' + geojson;
                 }
             });
-            var vectorLayer = new VectorTileLayer({
-                source: vectorSource
+            vectorLayer = new VectorTileLayer({
+                source: vectorSource,
+                style: styleFunction
             });
             map.addLayer(vectorLayer);
         });
