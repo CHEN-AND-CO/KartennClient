@@ -62,7 +62,7 @@ var replacer = function (key, value) {
     }
 };
 
-var selectedId;
+var selectedId, hoveredId;
 var vectorLayer;
 
 var styles = {
@@ -77,18 +77,29 @@ var styles = {
     }),
     'hover': new Style({
         stroke: new Stroke({
+            color: '#999999',
+            width: 3
+        }),
+        fill: new Fill({
+            color: '#ffffff99'
+        }),
+        zIndex: 42 // Somewhere above the other, unselected, features
+    }),
+    'selected': new Style({
+        stroke: new Stroke({
             color: '#55ff33',
             width: 5
         }),
         fill: new Fill({
             color: '#77ff4455'
         }),
-        zIndex: 42 // Somewhere above the other, unselected, features
+        zIndex: 43
     })
 };
 
 var styleFunction = (feature, resolution) => {
-    if (feature.get("name") === selectedId) return styles.hover;
+    if (feature.get("name") === selectedId) return styles.selected;
+    else if (feature.get("name") === hoveredId) return styles.hover;
     else return styles.default;
 }
 
@@ -135,9 +146,9 @@ export default {
         map.on('pointermove', (e) => {
             if (e.dragging) return;
 
-            selectedId = null;
+            hoveredId = null;
             map.forEachFeatureAtPixel(e.pixel, (f) => {
-                selectedId = f.get("name");
+                hoveredId = f.get("name");
             })
 
             vectorLayer.setStyle(styleFunction) // We are forced to re-apply the style function to the whole layer since OL5 doesn't update properly the features' style
@@ -148,8 +159,10 @@ export default {
             let featureExtent;
 
             // Set the selected style
+            selectedId = null;
             map.forEachFeatureAtPixel(e.pixel, (f) => {
                 selectedId = f.get("name");
+                console.log("Selected", f);
                 featureExtent = f.getGeometry().getExtent();
             })
             vectorLayer.setStyle(styleFunction);
