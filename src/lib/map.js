@@ -20,7 +20,7 @@ import { click, pointerMove, altKeyOnly } from 'ol/events/condition';
 import geojsonvt from 'geojson-vt';
 
 var map;
-const _tileserver = "http://127.0.0.1:8081/mapdata/vector";
+const _tileserver = "http://127.0.0.1:8080/";
 
 
 // Converts geojson-vt data to GeoJSON
@@ -154,7 +154,7 @@ export default {
     },
 
     addTownships() {
-        fetch(_tileserver + "/fix_equi.geojson").then(function (response) {
+        fetch(_tileserver + "wsg84fix.bretagne.geojson.min.json").then(function (response) {
             return response.json();
         }).then(function (json) {
             var tileIndex = geojsonvt(json, {
