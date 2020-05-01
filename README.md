@@ -1,3 +1,3 @@
-# OhMyBZH-Client
+# KartennClient
 ## Générer le site
 ``` npm run build ```
