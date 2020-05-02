@@ -1,5 +1,7 @@
 import axios from "axios";
-import constants from "constants";
+import constants from "./constants";
+
+console.log(constants.api_url);
 
 export default axios.create({
   baseURL: constants.api_url,
