@@ -16,12 +16,7 @@
                   prepend-icon="mdi-person"
                   label="Name"
                 ></v-text-field>
-                <v-text-field
-                  v-model="user.email"
-                  prepend-icon="mdi-at"
-                  label="Email"
-                  type="email"
-                ></v-text-field>
+                <v-text-field v-model="user.email" prepend-icon="mdi-at" label="Email" type="email"></v-text-field>
                 <v-text-field
                   v-model="user.password"
                   prepend-icon="mdi-textbox-password"
@@ -49,8 +44,7 @@
                   type="submit"
                   text
                   color="primary"
-                  >SIGN IN</v-btn
-                >
+                >SIGN IN</v-btn>
                 <v-btn
                   v-else
                   @click.prevent="register"
@@ -58,22 +52,17 @@
                   type="submit"
                   text
                   color="primary"
-                  >SIGN UP</v-btn
-                >
+                >SIGN UP</v-btn>
               </v-form>
             </v-card-text>
             <v-card-subtitle align="center">
               <div v-if="options.isLoggingIn">
                 <span class="mr-2">Don't have an account?</span>
-                <v-btn class="mr-2" @click="options.isLoggingIn = false"
-                  >SIGN UP</v-btn
-                >
+                <v-btn class="mr-2" @click="options.isLoggingIn = false">SIGN UP</v-btn>
               </div>
               <div v-else>
                 <span class="mr-2">Already have an account?</span>
-                <v-btn class="mr-2" @click="options.isLoggingIn = true"
-                  >SIGN IN</v-btn
-                >
+                <v-btn class="mr-2" @click="options.isLoggingIn = true">SIGN IN</v-btn>
               </div>
             </v-card-subtitle>
           </v-card>
@@ -85,6 +74,7 @@
 
 <script>
 import UserService from "../services/UserService";
+import NotifyNotification from "../lib/notify";
 
 export default {
   data() {
@@ -92,12 +82,12 @@ export default {
       user: {
         name: "",
         email: "",
-        password: "",
+        password: ""
       },
       options: {
         isLoggingIn: true,
-        shouldStayLoggedIn: true,
-      },
+        shouldStayLoggedIn: true
+      }
     };
   },
   methods: {
@@ -105,35 +95,59 @@ export default {
       var data = {
         name: this.user.name,
         email: this.user.email,
-        password: this.user.password,
+        password: this.user.password
       };
 
-      console.log(data);
       UserService.register(data)
-        .then((response) => {
-          console.log(response);
+        .then(response => {
+          var notifyNotification = new NotifyNotification(
+            "Inscription réussie !",
+            "",
+            "ok"
+          );
+          notifyNotification.eslint();
+
+          this.authenticate();
         })
-        .catch((err) => console.error(err));
+        .catch(err => {
+          var notifyNotification = new NotifyNotification(
+            "Erreur : Impossible d'enregistrer l'utilisateur",
+            err,
+            "error"
+          );
+          notifyNotification.eslint();
+        });
     },
     authenticate() {
       var data = {
         email: this.user.email,
-        password: this.user.password,
+        password: this.user.password
       };
 
       UserService.authenticate(data)
-        .then((response) => {
-          console.log(response);
-          console.log(response.data);
-          if(!response.data.data.token){
-            alert(response.message);
-            return;
-          }
+        .then(response => {
+          var notifyNotification = new NotifyNotification(
+            "Connexion réussie",
+            "Vous allez être redirigé !",
+            "ok"
+          );
+          notifyNotification.eslint();
 
-          localStorage.xtoken = response.data.data.token;
+          localStorage.setItem("xtoken", response.data.data.token);
+          localStorage.setItem("name", response.data.data.user.name);
+          localStorage.setItem("email", response.data.data.user.email);
+
+          this.$router.push("/");
         })
-        .catch((err) => console.error(err));
-    },
-  },
+        .catch(err => {
+          var notifyNotification = new NotifyNotification(
+            "Erreur",
+            "Identifiants incorrects (" + err + ")",
+            "error"
+          );
+          notifyNotification.eslint();
+        });
+    }
+  }
 };
 </script>

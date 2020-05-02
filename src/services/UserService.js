@@ -1,4 +1,4 @@
-import http from "../http-common";
+import http from "../lib/http-common";
 
 export default{
     register: (data)=>{
