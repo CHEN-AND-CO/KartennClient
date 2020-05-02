@@ -1,5 +1,5 @@
 export default {
-    api_url: "http://localhost:8420/",
-    tile_server: "http://localhost:8080/",
+    api_url: "https://kartenn.chenco.tk:8420/",
+    tile_server: "https://kartenn.chenco.tk/",
     township_geojson: "wsg84fix.bretagne.geojson.min.json"
 };
