@@ -142,6 +142,9 @@ export default {
             })
         });
 
+        // Add the vector layer for interactive townships features
+        this.addTownships();
+
         // Handle feature selection with mouse
         map.on('pointermove', (e) => {
             if (e.dragging) return;
@@ -175,9 +178,6 @@ export default {
                 map.getView().fit(buffer(featureExtent, 1000), { duration: 500 });
             }
         });
-
-        // Add the vector layer for interactive townships features
-        this.addTownships();
     },
 
     addTownships() {
