@@ -15,12 +15,17 @@ import geojsonvt from 'geojson-vt';
 
 import constants from '../constants';
 
-var map;
 const _tileserver = constants.tile_server;
 const _townships = constants.township_geojson;
 
+
 /* MFW I see dirty globals - burn that straight to hell */
 /* Then you realize it's Javascript so yeah guess it's fine then */
+
+var map;
+var vectorLayer;
+var townships_raw;
+var selectedId, hoveredId;
 
 // Converts geojson-vt data to GeoJSON
 var replacer = function (key, value) {
@@ -62,9 +67,6 @@ var replacer = function (key, value) {
     }
 };
 
-var selectedId, hoveredId;
-var vectorLayer;
-
 var styles = {
     'default': new Style({
         stroke: new Stroke({
@@ -103,7 +105,10 @@ var styleFunction = (feature, resolution) => {
     else return styles.default;
 }
 
-
+var _cMapReady = function () {}
+function _call_onMapReady() {
+    _cMapReady();
+}
 
 export default {
 
@@ -148,42 +153,34 @@ export default {
         // Handle feature selection with mouse
         map.on('pointermove', (e) => {
             if (e.dragging) return;
-
-            hoveredId = null;
+            
+            let feature = null;
             map.forEachFeatureAtPixel(e.pixel, (f) => {
-                hoveredId = f.get("name");
+                feature = f;
             })
-
-            vectorLayer.setStyle(styleFunction) // We are forced to re-apply the style function to the whole layer since OL5 doesn't update properly the features' style
+            // Set the 'hovering' style
+            this.selectFeature(feature);
         });
 
         // Handle feature click 
         map.on('click', (e) => {
-            let featureExtent;
+            let feature = null;
 
-            // Set the selected style
-            selectedId = null;
             map.forEachFeatureAtPixel(e.pixel, (f) => {
-                selectedId = f.get("name");
-                console.log("Selected", f);
-                featureExtent = f.getGeometry().getExtent();
+                feature = f;
             })
-            vectorLayer.setStyle(styleFunction);
-
-            // Zoom to the selected feature
-            if (featureExtent) {
-                for (const feature of vectorLayer.getSource().getFeaturesInExtent(map.getView().calculateExtent(map.getSize()))) {
-                    if (feature.get("name") === selectedId) extend(featureExtent, feature.getGeometry().getExtent());
-                }
-                map.getView().fit(buffer(featureExtent, 1000), { duration: 500 });
-            }
+            // Set the 'selected' style and zoom the view to the full feature
+            this.focusFeature(feature);
         });
+
+        console.log("Map created")
     },
 
     addTownships() {
         fetch(_tileserver + _townships).then(function (response) {
             return response.json();
         }).then(function (json) {
+            townships_raw = json;
             var tileIndex = geojsonvt(json, {
                 extent: 4096,
                 debug: 1
@@ -211,7 +208,13 @@ export default {
                 style: styleFunction
             });
             map.addLayer(vectorLayer);
+            console.log("Township layer added")
+            _call_onMapReady();
         });
+    },
+
+    onMapReady(callback) {
+        _cMapReady = callback;
     },
 
     getOLMap() {
@@ -222,4 +225,54 @@ export default {
         return map.getLayers().getArray();
     },
 
+    getTownships() {
+        let townships = [];
+
+        for (const feature of townships_raw.features) {
+            townships.push({
+                name: feature.properties.name,
+                insee: feature.properties.tags['ref:INSEE'],
+                postcode: feature.properties.tags['addr:postcode']
+            });
+        }
+        return townships;
+    },
+
+    getFeatureByName(name) {
+        for ( const feature of vectorLayer.getSource().getFeaturesInExtent( map.getView().calculateExtent(map.getSize()) ) ) {
+            if (feature.get("name") === name) return feature;
+        }
+        return null;
+    },
+
+    getFeatureByTag(tag, value) {
+        for (const feature of vectorLayer.getSource().getFeaturesInExtent(map.getView().calculateExtent(map.getSize()))) {
+            if (feature.get("tags") && feature.get("tags")[tag] === value) return feature;
+        }
+        return null;
+    },
+
+    selectFeature(f) {
+        if (f) hoveredId = f.get("name");
+        else hoveredId = null;
+
+        vectorLayer.setStyle(styleFunction);
+    },
+
+    focusFeature(f) {
+        if (f) {
+            selectedId = f.get("name");
+            
+            // Expand feature extent to nearby tiles if the whole feature spans across multiple tiles
+            let featureExtent = f.getGeometry().getExtent();
+            for (const feature of vectorLayer.getSource().getFeaturesInExtent(map.getView().calculateExtent(map.getSize()))) {
+                if (feature.get("name") === selectedId) extend(featureExtent, feature.getGeometry().getExtent());
+            }       
+            map.getView().fit(buffer(featureExtent, 1000), { duration: 500 });
+
+        } else {
+            selectedId = null;
+        }
+        vectorLayer.setStyle(styleFunction);
+    }
 }

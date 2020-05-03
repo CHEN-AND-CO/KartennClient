@@ -7,6 +7,10 @@
       </router-link>
 
       <v-spacer></v-spacer>
+      
+      <SearchBar></SearchBar>
+
+      <v-spacer></v-spacer>
 
       <v-btn text fab @click="toggleTheme">
         <v-icon>mdi-invert-colors</v-icon>
@@ -33,11 +37,14 @@
 <script>
 import LoggedService from "./services/LoggedService";
 import NotifyNotification from "./lib/notify";
+import SearchBar from "./components/SearchBar";
 
 export default {
   name: "App",
 
-  components: {},
+  components: {
+    SearchBar
+  },
 
   data: () => ({ logged: false }),
 
