@@ -100,17 +100,21 @@ var styles = {
 };
 
 var styleFunction = (feature, resolution) => {
-    if (feature.get("name") === selectedId) return styles.selected;
-    else if (feature.get("name") === hoveredId) return styles.hover;
+    if (feature.get("tags")["ref:INSEE"] === selectedId) return styles.selected;
+    else if (feature.get("tags")["ref:INSEE"] === hoveredId) return styles.hover;
     else return styles.default;
 }
 
-var _cMapReady = function () {}
+var _cMapReady = function () { }
+var _cMapFeatureHover = function () {}
+var _cMapFeatureFocus = function () { }
 function _call_onMapReady() {
     _cMapReady();
 }
+var townships = [];
 
 export default {
+
 
     createMap(outletID) {
 
@@ -173,6 +177,12 @@ export default {
             this.focusFeature(feature);
         });
 
+        document.addEventListener('keyup', (e) => {
+            if (e.keyCode === 27) {
+                this.removeFocus();
+                _cMapFeatureFocus();
+            }
+        })
         console.log("Map created")
     },
 
@@ -208,6 +218,19 @@ export default {
                 style: styleFunction
             });
             map.addLayer(vectorLayer);
+
+            // Build a simplified list of townships with only metadata
+            townships = [];
+
+            for (const feature of townships_raw.features) {
+                townships.push({
+                    name: feature.properties.name,
+                    insee: feature.properties.tags['ref:INSEE'],
+                    postcode: feature.properties.tags['addr:postcode'],
+                    tags: feature.properties.tags
+                });
+            }
+            
             console.log("Township layer added")
             _call_onMapReady();
         });
@@ -215,6 +238,14 @@ export default {
 
     onMapReady(callback) {
         _cMapReady = callback;
+    },
+
+    onHover(callback) {
+        _cMapFeatureHover = callback;
+    },
+
+    onFocus(callback) {
+        _cMapFeatureFocus = callback;
     },
 
     getOLMap() {
@@ -226,16 +257,14 @@ export default {
     },
 
     getTownships() {
-        let townships = [];
-
-        for (const feature of townships_raw.features) {
-            townships.push({
-                name: feature.properties.name,
-                insee: feature.properties.tags['ref:INSEE'],
-                postcode: feature.properties.tags['addr:postcode']
-            });
-        }
         return townships;
+    },
+
+    getSelectedTownship() {
+        for (const township of townships) {
+            if (township.insee === selectedId) return township;
+        }
+        return null;
     },
 
     getFeatureByName(name) {
@@ -253,20 +282,21 @@ export default {
     },
 
     selectFeature(f) {
-        if (f) hoveredId = f.get("name");
+        if (f) hoveredId = f.get("tags")["ref:INSEE"];
         else hoveredId = null;
 
         vectorLayer.setStyle(styleFunction);
+        _cMapFeatureHover(f);
     },
 
     focusFeature(f) {
         if (f) {
-            selectedId = f.get("name");
+            selectedId = f.get("tags")["ref:INSEE"];
             
             // Expand feature extent to nearby tiles if the whole feature spans across multiple tiles
             let featureExtent = f.getGeometry().getExtent();
             for (const feature of vectorLayer.getSource().getFeaturesInExtent(map.getView().calculateExtent(map.getSize()))) {
-                if (feature.get("name") === selectedId) extend(featureExtent, feature.getGeometry().getExtent());
+                if (feature.get("tags")["ref:INSEE"] === selectedId) extend(featureExtent, feature.getGeometry().getExtent());
             }       
             map.getView().fit(buffer(featureExtent, 1000), { duration: 500 });
 
@@ -274,5 +304,12 @@ export default {
             selectedId = null;
         }
         vectorLayer.setStyle(styleFunction);
+
+        _cMapFeatureFocus(f);
+    },
+
+    removeFocus() {
+        selectedId = null;
+        map.getView().animate( {zoom: 10} );
     }
 }
