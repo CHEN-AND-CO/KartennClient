@@ -23,7 +23,7 @@
 
         <v-card class="map-download-card">
             <v-img
-                src="../../public/mapdata/map_hi.png"
+                src=""
                 class="white--text align-end"
             >
                 <v-card-title>Carte topographique</v-card-title>
@@ -36,7 +36,7 @@
 
         <v-card class="map-download-card">
             <v-img
-                src="../../public/mapdata/map_low.png"
+                src=""
                 class="white--text align-end"
             >
                 <v-card-title>Plan</v-card-title>
