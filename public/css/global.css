@@ -4,3 +4,8 @@
 * {
     transition: color .4s;
 }
+
+html, body {
+    margin: 0;
+    overflow: hidden !important;
+}
