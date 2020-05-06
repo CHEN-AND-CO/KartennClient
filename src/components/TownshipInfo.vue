@@ -80,13 +80,13 @@ export default {
         this.links.high_res = "";
         this.links.low_res = "";
         CitiesService.getCity(this.township.insee, "false")
-          .then(res => {
-            this.links.high_res = res.data.data.file;
-            this.links.low_res = res.data.data.file_simp;
-          })
-          .catch(error => {
-            console.error("Request failed" + error);
-          });
+            .then(res => {
+                this.links.high_res = res.data.data.file;
+                this.links.low_res = res.data.data.file_simp;
+            })
+            .catch(error => {
+                console.error("Request failed" + error);
+            });
       }
     });
   },
@@ -126,30 +126,32 @@ export default {
 </script>
 
 <style lang="less">
-aside.side-menu {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 30em;
-  z-index: 999;
-  overflow: auto;
+    aside.side-menu {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 30em;
+        z-index: 999;
+        overflow: auto;
+        
+        display: block;
+        padding: 1em 2em;
+        background-color: var(--v-secondary-base);
+        opacity: .9;
 
-  display: block;
-  padding: 1em 2em;
-  background-color: var(--v-secondary-base);
-  opacity: 0.9;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+        transition: opacity .12s, transform .18s;
+        pointer-events: initial;
 
-  transition: opacity 0.12s, transform 0.18s;
-
-  &.hidden {
-    transform: translateX(-10%);
-    opacity: 0;
-  }
-}
+        &.hidden {
+            transform: translateX(-10%);
+            opacity: 0;
+            pointer-events: none;
+        }
+    }
 
 .township-title {
   font-family: "Roboto", Arial, Helvetica, sans-serif;
