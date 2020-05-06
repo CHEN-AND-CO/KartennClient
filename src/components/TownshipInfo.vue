@@ -83,7 +83,6 @@ export default {
           .then(res => {
             this.links.high_res = res.data.data.file;
             this.links.low_res = res.data.data.file_simp;
-            console.log(this.links);
           })
           .catch(error => {
             console.error("Request failed" + error);
