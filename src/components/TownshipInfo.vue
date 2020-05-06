@@ -23,7 +23,12 @@
     </div>
 
     <v-card class="map-download-card">
-      <v-img :src="links.high_res" :key="links.high_res" :eager="true" class="white--text align-end">
+      <v-img
+        :src="links.high_res"
+        :key="links.high_res"
+        :eager="true"
+        class="white--text align-end"
+      >
         <v-card-title>Carte topographique</v-card-title>
       </v-img>
       <v-card-subtitle class="pb-0">Carte détaillée de la topographie</v-card-subtitle>
@@ -59,9 +64,7 @@ export default {
       low_res: "",
       hi_res_loading: false,
       low_res_loading: false
-    },
-    rerenderHigh: 0,
-    rerenderLow: 0
+    }
   }),
 
   mounted() {
@@ -80,13 +83,13 @@ export default {
         this.links.high_res = "";
         this.links.low_res = "";
         CitiesService.getCity(this.township.insee, "false")
-            .then(res => {
-                this.links.high_res = res.data.data.file;
-                this.links.low_res = res.data.data.file_simp;
-            })
-            .catch(error => {
-                console.error("Request failed" + error);
-            });
+          .then(res => {
+            this.links.high_res = res.data.data.thumb;
+            this.links.low_res = res.data.data.thumb_simp;
+          })
+          .catch(error => {
+            console.error("Request failed" + error);
+          });
       }
     });
   },
@@ -102,11 +105,14 @@ export default {
       CitiesService.getCity(this.township.insee, "true")
         .then(res => {
           window.open(res.data.data.file);
-          this.links.high_res = res.data.data.file;
+          this.links.high_res = res.data.data.thumb;
           this.links.hi_res_loading = false;
         })
         .catch(error => {
           console.error("Request failed" + error);
+        })
+        .finally(() => {
+          this.links.hi_res_loading = false;
         });
     },
     getLinkSimp() {
@@ -114,11 +120,14 @@ export default {
       CitiesService.getCity(this.township.insee, "true")
         .then(res => {
           window.open(res.data.data.file_simp);
-          this.links.low_res = res.data.data.file_simp;
+          this.links.low_res = res.data.data.thumb_simp;
           this.links.low_res_loading = false;
         })
         .catch(error => {
           console.error("Request failed" + error);
+        })
+        .finally(() => {
+          this.links.low_res_loading = false;
         });
     }
   }
@@ -126,32 +135,32 @@ export default {
 </script>
 
 <style lang="less">
-    aside.side-menu {
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 30em;
-        z-index: 999;
-        overflow: auto;
-        
-        display: block;
-        padding: 1em 2em;
-        background-color: var(--v-secondary-base);
-        opacity: .9;
+aside.side-menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 30em;
+  z-index: 999;
+  overflow: auto;
 
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+  display: block;
+  padding: 1em 2em;
+  background-color: var(--v-secondary-base);
+  opacity: 0.9;
 
-        transition: opacity .12s, transform .18s;
-        pointer-events: initial;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
-        &.hidden {
-            transform: translateX(-10%);
-            opacity: 0;
-            pointer-events: none;
-        }
-    }
+  transition: opacity 0.12s, transform 0.18s;
+  pointer-events: initial;
+
+  &.hidden {
+    transform: translateX(-10%);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
 
 .township-title {
   font-family: "Roboto", Arial, Helvetica, sans-serif;
