@@ -4,8 +4,7 @@ import constants from "../constants";
 const http = axios.create({
   baseURL: constants.api_url,
   headers: {
-    "Content-type": "application/json",
-    'Cache-Control': 'no-cache'
+    "Content-type": "application/json"
   }
 })
 
