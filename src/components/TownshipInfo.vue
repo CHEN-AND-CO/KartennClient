@@ -79,8 +79,7 @@ export default {
 
         this.links.high_res = "";
         this.links.low_res = "";
-        CitiesService.getCity(this.township.insee, "false")
-          .then(res => {
+        http.get("/cities/"+this.township.insee+"?create="+"false").then(res => {
             this.links.high_res = res.data.data.file;
             this.links.low_res = res.data.data.file_simp;
           })
