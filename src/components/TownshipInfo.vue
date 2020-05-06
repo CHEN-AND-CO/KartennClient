@@ -23,7 +23,7 @@
     </div>
 
     <v-card class="map-download-card">
-      <v-img src class="white--text align-end">
+      <v-img :src="links.high_res" :key="links.high_res" :eager="true" class="white--text align-end">
         <v-card-title>Carte topographique</v-card-title>
       </v-img>
       <v-card-subtitle class="pb-0">Carte détaillée de la topographie</v-card-subtitle>
@@ -33,12 +33,12 @@
     </v-card>
 
     <v-card class="map-download-card">
-      <v-img src class="white--text align-end">
+      <v-img :key="links.low_res" :src="links.low_res" :eager="true" class="white--text align-end">
         <v-card-title>Plan</v-card-title>
       </v-img>
       <v-card-subtitle class="pb-0">Plan épuré, adapté à l'affichage</v-card-subtitle>
       <v-card-actions>
-        <v-btn @click="getLinkSimp" >Télécharger</v-btn>
+        <v-btn @click="getLinkSimp">Télécharger</v-btn>
       </v-card-actions>
     </v-card>
   </aside>
@@ -55,11 +55,13 @@ export default {
     township: {},
     isSelected: false,
     links: {
-      high_res: null,
-      low_res: null,
+      high_res: "",
+      low_res: "",
       hi_res_loading: false,
       low_res_loading: false
-    }
+    },
+    rerenderHigh: 0,
+    rerenderLow: 0
   }),
 
   mounted() {
@@ -74,6 +76,18 @@ export default {
         this.isSelected = false;
       } else {
         this.isSelected = true;
+
+        this.links.high_res = "";
+        this.links.low_res = "";
+        CitiesService.getCity(this.township.insee, "false")
+          .then(res => {
+            this.links.high_res = res.data.data.file;
+            this.links.low_res = res.data.data.file_simp;
+            console.log(this.links);
+          })
+          .catch(error => {
+            console.error("Request failed" + error);
+          });
       }
     });
   },
@@ -86,10 +100,10 @@ export default {
 
     getLink() {
       this.links.hi_res_loading = true;
-      CitiesService.getCity(this.township.insee, {})
+      CitiesService.getCity(this.township.insee, "true")
         .then(res => {
-          console.log(res);
           window.open(res.data.data.file);
+          this.links.high_res = res.data.data.file;
           this.links.hi_res_loading = false;
         })
         .catch(error => {
@@ -97,12 +111,12 @@ export default {
         });
     },
     getLinkSimp() {
-      this.links.hi_res_loading = true;
-      CitiesService.getCity(this.township.insee, {})
+      this.links.low_res_loading = true;
+      CitiesService.getCity(this.township.insee, "true")
         .then(res => {
-          console.log(res);
           window.open(res.data.data.file_simp);
-          this.links.hi_res_loading = false;
+          this.links.low_res = res.data.data.file_simp;
+          this.links.low_res_loading = false;
         })
         .catch(error => {
           console.error("Request failed" + error);
